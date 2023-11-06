@@ -5,6 +5,7 @@ dataset:
   task: graph
   task_type: ranking
   transductive: False
+  dir: /kaggle
 train:
   batch_size: 32
   eval_period: 1
