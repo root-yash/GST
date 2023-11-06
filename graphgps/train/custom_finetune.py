@@ -41,11 +41,11 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
         for i, num_parts in enumerate(batch_num_parts):
             for j in range(num_parts):
                 graph_embed[i, :] += emb_table.pull(torch.tensor(batch[i].partition_idx+j)).clone().detach().flatten()
-        graph_embed = graph_embed.to(torch.device(cfg.device))
-        batch_num_parts = torch.Tensor(batch_num_parts).to(torch.device(cfg.device))
+        graph_embed = graph_embed.to(torch.device(cfg.accelerator))
+        batch_num_parts = torch.Tensor(batch_num_parts).to(torch.device(cfg.accelerator))
         batch_num_parts = batch_num_parts.view(-1, 1)
         graph_embed = graph_embed / batch_num_parts
-        true = true.to(torch.device(cfg.device))
+        true = true.to(torch.device(cfg.accelerator))
         for i, module in enumerate(model.children()):
             if i == module_len - 1:
                 pred = module.layer_post_mp(graph_embed)
@@ -115,10 +115,10 @@ def eval_epoch(logger, loader, model, split='val'):
                 batch_seg_list[-1].append(data)
                 cnt += 1
         batch_seg_embed_list = []
-        true = true.to(torch.device(cfg.device))
+        true = true.to(torch.device(cfg.accelerator))
         for batch_seg in batch_seg_list:
             batch_seg = Batch.from_data_list(batch_seg)
-            batch_seg.to(torch.device(cfg.device))
+            batch_seg.to(torch.device(cfg.accelerator))
             module_len = len(list(model.children()))
             for i, module in enumerate(model.children()):
                 if i < module_len - 1:
@@ -127,13 +127,13 @@ def eval_epoch(logger, loader, model, split='val'):
                     batch_seg_embed = module.pooling_fun(batch_seg.x, batch_seg.batch)
                     batch_seg_embed_list.append(batch_seg_embed)
         batch_seg_embed_list = torch.cat(batch_seg_embed_list, dim=0)
-        graph_embed = torch.zeros(len(batch.y), batch_seg_embed.shape[1]).to(torch.device(cfg.device))
+        graph_embed = torch.zeros(len(batch.y), batch_seg_embed.shape[1]).to(torch.device(cfg.accelerator))
         part_cnt = 0
         for i, num_parts in enumerate(batch_num_parts):
             for j in range(num_parts):
                 graph_embed[i, :] += batch_seg_embed_list[part_cnt, :]
                 part_cnt += 1
-        batch_num_parts = torch.Tensor(batch_num_parts).to(torch.device(cfg.device))
+        batch_num_parts = torch.Tensor(batch_num_parts).to(torch.device(cfg.accelerator))
         batch_num_parts = batch_num_parts.view(-1, 1)
         graph_embed = graph_embed / batch_num_parts
         for i, module in enumerate(model.children()):
@@ -333,10 +333,10 @@ def inference_emb_table(logger, loader, model, emb_table):
                 batch_seg_list[-1].append(data)
                 cnt += 1
         batch_seg_embed_list = []
-        true = true.to(torch.device(cfg.device))
+        true = true.to(torch.device(cfg.accelerator))
         for batch_seg in batch_seg_list:
             batch_seg = Batch.from_data_list(batch_seg)
-            batch_seg.to(torch.device(cfg.device))
+            batch_seg.to(torch.device(cfg.accelerator))
             module_len = len(list(model.children()))
             for i, module in enumerate(model.children()):
                 if i < module_len - 1:

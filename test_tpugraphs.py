@@ -194,8 +194,8 @@ def eval_epoch(logger, loader, model, split='val'):
         res_list = []
         for batch_seg in batch_seg_list:
             batch_seg = Batch.from_data_list(batch_seg)
-            batch_seg.to(torch.device(cfg.device))
-            true = true.to(torch.device(cfg.device))
+            batch_seg.to(torch.device(cfg.accelerator))
+            true = true.to(torch.device(cfg.accelerator))
             # more preprocessing
             batch_seg.op_emb = model.emb(batch_seg.op_code.long())
             batch_seg.x = torch.cat((batch_seg.op_feats, batch_seg.op_emb * model.op_weights, batch_seg.config_feats * model.config_weights), dim=-1)
@@ -213,7 +213,7 @@ def eval_epoch(logger, loader, model, split='val'):
                     res = module.layer_post_mp(graph_embed)
                     res_list.append(res)
         res_list = torch.cat(res_list, dim=0)
-        pred = torch.zeros(1, len(data.y), 1).to(torch.device(cfg.device))
+        pred = torch.zeros(1, len(data.y), 1).to(torch.device(cfg.accelerator))
         part_cnt = 0
         for i, num_parts in enumerate(batch_num_parts):
             for _ in range(num_parts):
@@ -263,7 +263,7 @@ if __name__ == '__main__':
         # Set machine learning pipeline
         model = create_model()
         model = TPUModel(model)
-        model = model.to(torch.device(cfg.device))
+        model = model.to(torch.device(cfg.accelerator))
         optimizer = create_optimizer(model.parameters(),
                                      new_optimizer_config(cfg))
         scheduler = create_scheduler(optimizer, new_scheduler_config(cfg))

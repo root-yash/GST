@@ -62,7 +62,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
     num_sample_config = 32
     for iter, batch in enumerate(loader):
         batch, sampled_idx = preprocess_batch(batch, model, num_sample_config)
-        batch.to(torch.device(cfg.device))
+        batch.to(torch.device(cfg.accelerator))
         true = batch.y
         
         batch_list = batch.to_data_list()
@@ -105,8 +105,8 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
                     for k in range(len(data.y)):
                         batch_other.append(emb_table.pull(batch_list[i].partition_idx.cpu()+num_parts*sampled_idx[k]+j))       
         batch_train = Batch.from_data_list(batch_train_list)
-        batch_train = batch_train.to(torch.device(cfg.device))
-        true = true.to(torch.device(cfg.device))
+        batch_train = batch_train.to(torch.device(cfg.accelerator))
+        true = true.to(torch.device(cfg.accelerator))
         # more preprocessing
         batch_train.split = 'train'
         batch_train.op_emb = model.emb(batch_train.op_code.long())
@@ -127,8 +127,8 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
         binomial = torch.distributions.binomial.Binomial(probs=0.5)
         if len(batch_other) > 0:
             batch_other = torch.cat(batch_other, dim=0)
-            mask =  binomial.sample((batch_other.shape[0], 1)).to(torch.device(cfg.device))
-            batch_other = batch_other.to(torch.device(cfg.device))
+            mask =  binomial.sample((batch_other.shape[0], 1)).to(torch.device(cfg.accelerator))
+            batch_other = batch_other.to(torch.device(cfg.accelerator))
             batch_other = batch_other * mask    
             batch_other_embed = torch.zeros_like(graph_embed)
             part_cnt = 0
@@ -136,7 +136,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
                 for j in range(num_parts-1):
                     batch_other_embed[i, :] += batch_other[part_cnt, :]
                     part_cnt += 1
-            batch_num_parts = torch.Tensor(batch_num_parts).to(torch.device(cfg.device))
+            batch_num_parts = torch.Tensor(batch_num_parts).to(torch.device(cfg.accelerator))
             batch_num_parts = batch_num_parts.view(-1, 1)
             multiplier_num = (batch_num_parts-1)/ 2 + 1
             pred = graph_embed*multiplier_num + batch_other_embed
@@ -220,8 +220,8 @@ def eval_epoch(logger, loader, model, split='val'):
                     unfold_g = Data(edge_index=data.edge_index, op_feats=data.op_feats, op_code=data.op_code, config_feats=data.config_feats_full[:, k, :], num_nodes=length)
                     batch_seg.append(unfold_g)
         batch_seg = Batch.from_data_list(batch_seg)
-        batch_seg.to(torch.device(cfg.device))
-        true = true.to(torch.device(cfg.device))
+        batch_seg.to(torch.device(cfg.accelerator))
+        true = true.to(torch.device(cfg.accelerator))
         # more preprocessing
         # batch_train.config_feats = model.config_feats_transform(batch_train.config_feats)
         batch_seg.op_emb = model.emb(batch_seg.op_code.long())
@@ -239,14 +239,14 @@ def eval_epoch(logger, loader, model, split='val'):
         for i, module in enumerate(model.model.children()):
             if i == module_len - 1:
                 res = module.layer_post_mp(graph_embed)
-        pred = torch.zeros(len(loader.dataset), len(data.y), 1).to(torch.device(cfg.device))
+        pred = torch.zeros(len(loader.dataset), len(data.y), 1).to(torch.device(cfg.accelerator))
         part_cnt = 0
         for i, num_parts in enumerate(batch_num_parts):
             for _ in range(num_parts):
                 for j in range(num_sample_config):
                     pred[i, j, :] += res[part_cnt, :]
                     part_cnt += 1
-        batch_num_parts = torch.Tensor(batch_num_parts).to(torch.device(cfg.device))
+        batch_num_parts = torch.Tensor(batch_num_parts).to(torch.device(cfg.accelerator))
         batch_num_parts = batch_num_parts.view(-1, 1)
         extra_stats = {}
         if cfg.dataset.name == 'ogbg-code2':
@@ -287,7 +287,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
 
     """
     start_epoch = 0
-    model = model.to(cfg.device)
+    model = model.to(cfg.accelerator)
     if cfg.train.auto_resume:
         start_epoch = load_ckpt(model, optimizer, scheduler,
                                 cfg.train.epoch_resume)
