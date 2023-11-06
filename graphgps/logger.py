@@ -191,7 +191,6 @@ class CustomLogger(Logger):
             true = true.numpy()
             pred = pred.numpy()
             for i in range(true.shape[0]):
-                print(true.shape, pred.shape)
                 kendall.append(self.kendal_tau(torch.tensor(pred[i]), torch.tensor(true[i])))
                 opas.append(eval_opa(true[i], pred[i]))
                 corrs.append(eval_spearmanr(true[i], pred[i])['spearmanr'])
@@ -343,6 +342,9 @@ def eval_opa(y_true, y_pred):
     pairwise_true = y_true[i_idx] > y_true[j_idx]
     opa_indices = pairwise_true.nonzero()[0].flatten()
     opa_preds = y_pred[i_idx[opa_indices]] - y_pred[j_idx[opa_indices]]
-    opa_acc = float((opa_preds > 0).sum()) / opa_preds.shape[0]
+    try:
+        opa_acc = float((opa_preds > 0).sum()) / opa_preds.shape[0]
+    except:
+        return 0.5
     return opa_acc
     
