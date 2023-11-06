@@ -7,7 +7,7 @@ dataset:
   transductive: False
   dir: /kaggle
 train:
-  batch_size: 32
+  batch_size: 4
   eval_period: 1
   ckpt_period: 100
   sampler: full_batch
