@@ -16,7 +16,7 @@ from torchmetrics.functional import auroc
 
 import graphgps.metrics_ogb as metrics_ogb
 from graphgps.metric_wrapper import MetricWrapper
-
+from torchmetrics import KendallRankCorrCoef
 
 def accuracy_SBM(targets, pred_int):
     """Accuracy eval for Benchmarking GNN's PATTERN and CLUSTER datasets.
@@ -46,6 +46,7 @@ class CustomLogger(Logger):
         super().__init__(*args, **kwargs)
         # Whether to run comparison tests of alternative score implementations.
         self.test_scores = False
+        self.kendal_tau = KendallRankCorrCoef(variant='b')
 
     # basic properties
     def basic(self):
@@ -185,15 +186,18 @@ class CustomLogger(Logger):
         reformat = lambda x: round(float(x), cfg.round)
         opas = []
         corrs = []
+        kendall = []
         for true, pred in zip(self._true, self._pred):
             true = true.numpy()
             pred = pred.numpy()
             for i in range(true.shape[0]):
+                kendall.append(self.kendal_tau(pred[i], true[i]))
                 opas.append(eval_opa(true[i], pred[i]))
                 corrs.append(eval_spearmanr(true[i], pred[i])['spearmanr'])
         return {
             'opa': reformat(np.mean(opas)),
             'spearmanr': reformat(np.mean(corrs)),
+            'kendall': reformat(np.mean(kendall))
         }
 
     def regression(self):
