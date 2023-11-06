@@ -113,14 +113,14 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
         batch_train.x = torch.cat((batch_train.op_feats, batch_train.op_emb * model.op_weights, batch_train.config_feats * model.config_weights), dim=-1)
         batch_train.x = model.linear_map(batch_train.x)
         
-        module_len = len(list(model.model.model.children()))
-        for i, module in enumerate(model.model.model.children()):
+        module_len = len(list(model.model.model.model.children()))
+        for i, module in enumerate(model.model.model.model.children()):
             if i < module_len - 1:
                 batch_train = module(batch_train)
             if i == module_len - 1:
                 batch_train_embed = tnn.global_max_pool(batch_train.x, batch_train.batch) + tnn.global_mean_pool(batch_train.x, batch_train.batch)
         graph_embed = batch_train_embed / torch.norm(batch_train_embed, dim=-1, keepdim=True)
-        for i, module in enumerate(model.model.model.children()):
+        for i, module in enumerate(model.model.model.model.children()):
             if i == module_len - 1:
                 graph_embed = module.layer_post_mp(graph_embed)
         
@@ -229,14 +229,14 @@ def eval_epoch(logger, loader, model, split='val'):
         batch_seg.x = torch.cat((batch_seg.op_feats, model.op_weights * batch_seg.op_emb, batch_seg.config_feats * model.config_weights), dim=-1)
         batch_seg.x = model.linear_map(batch_seg.x)
        
-        module_len = len(list(model.model.children()))
-        for i, module in enumerate(model.model.children()):
+        module_len = len(list(model.model.model.children()))
+        for i, module in enumerate(model.model.model.children()):
             if i < module_len - 1:
                 batch_seg = module(batch_seg)
             if i == module_len - 1:
                 batch_seg_embed = tnn.global_max_pool(batch_seg.x, batch_seg.batch) + tnn.global_mean_pool(batch_seg.x, batch_seg.batch)
         graph_embed = batch_seg_embed / torch.norm(batch_seg_embed, dim=-1, keepdim=True)
-        for i, module in enumerate(model.model.children()):
+        for i, module in enumerate(model.model.model.children()):
             if i == module_len - 1:
                 res = module.layer_post_mp(graph_embed)
         pred = torch.zeros(len(loader.dataset), len(data.y), 1).to(torch.device(cfg.accelerator))
