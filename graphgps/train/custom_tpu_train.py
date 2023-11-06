@@ -191,7 +191,6 @@ def eval_epoch(logger, loader, model, split='val'):
         batch_list = batch.to_data_list()
         batch_seg = []
         batch_num_parts = []
-        print(batch)
         for i in range(len(batch_list)):
             num_parts = len(batch_list[i].partptr) - 1
             batch_num_parts.append(num_parts)
@@ -257,8 +256,6 @@ def eval_epoch(logger, loader, model, split='val'):
         elif cfg.dataset.name == 'TPUGraphs':
             pred = pred.view(-1, num_sample_config)
             true = true.view(-1, num_sample_config)
-            print(pred.shape)
-            print(true.shape)
             loss = pairwise_hinge_loss_batch(pred, true)
             _true = true.detach().to('cpu', non_blocking=True)
             _pred = pred.detach().to('cpu', non_blocking=True)
