@@ -70,6 +70,7 @@ class TPUGraphs(InMemoryDataset):
         parts_cnt = 0
         for raw_path in self.raw_paths:
             for split_name in split_names:
+                print(os.path.join(raw_path, split_name))
                 filenames = glob.glob(osp.join(os.path.join(raw_path, split_name), '*.npz'))
                 for filename in filenames:
                     split_dict[split_name].append(graphs_cnt)
