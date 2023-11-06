@@ -397,7 +397,6 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                 f"Best so far: epoch {best_epoch}\t"
                 f"train_loss: {perf[0][best_epoch]['loss']:.4f} {best_train}\t"
                 f"val_loss: {perf[1][best_epoch]['loss']:.4f} {best_val}\t"
-                f"test_loss: {perf[2][best_epoch]['loss']:.4f} {best_test}"
             )
             if hasattr(model, 'trf_layers'):
                 # Log SAN's gamma parameter values if they are trainable.
@@ -433,7 +432,7 @@ def inference_only(loggers, loaders, model, optimizer=None, scheduler=None):
         scheduler: Unused, exists just for API compatibility
     """
     num_splits = len(loggers)
-    split_names = ['test']
+    split_names = ['train', 'val', 'test']
     perf = [[] for _ in range(num_splits)]
     cur_epoch = 0
     start_time = time.perf_counter()
