@@ -317,7 +317,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                          name=wandb_name)
         run.config.update(cfg_to_dict(cfg))
 
-    num_splits = len(loggers)
+    num_splits = len(loggers) - 1
     split_names = ['val']
     full_epoch_times = []
     perf = [[] for _ in range(num_splits)]
