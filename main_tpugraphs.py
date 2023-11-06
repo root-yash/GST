@@ -42,7 +42,7 @@ def new_scheduler_config(cfg):
         max_epoch=cfg.optim.max_epoch, reduce_factor=cfg.optim.reduce_factor,
         schedule_patience=cfg.optim.schedule_patience, min_lr=cfg.optim.min_lr,
         num_warmup_epochs=cfg.optim.num_warmup_epochs,
-        train_mode=cfg.train.mode, eval_period=cfg.train.eval_period)
+        train_mode="custom_tpu", eval_period=cfg.train.eval_period)
 
 
 def custom_set_out_dir(cfg, cfg_fname, name_tag):
@@ -162,13 +162,7 @@ if __name__ == '__main__':
         cfg.params = params_count(model)
         logging.info('Num parameters: %s', cfg.params)
         # Start training
-        if cfg.train.mode == 'standard':
-            if cfg.wandb.use:
-                logging.warning("[W] WandB logging is not supported with the "
-                                "default train.mode, set it to `custom`")
-            train(loggers, loaders, model, optimizer, scheduler)
-        else:
-            train_dict[cfg.train.mode](loggers, loaders, model, optimizer,
+        train_dict["custom_tpu"](loggers, loaders, model, optimizer,
                                        scheduler)
     # Aggregate results from different seeds
     try:

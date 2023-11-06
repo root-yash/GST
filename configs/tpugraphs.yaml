@@ -6,7 +6,6 @@ dataset:
   task_type: ranking
   transductive: False
 train:
-  mode: custom_tpu
   batch_size: 32
   eval_period: 1
   ckpt_period: 100
