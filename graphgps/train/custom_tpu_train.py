@@ -113,14 +113,14 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
         batch_train.x = torch.cat((batch_train.op_feats, batch_train.op_emb * model.op_weights, batch_train.config_feats * model.config_weights), dim=-1)
         batch_train.x = model.linear_map(batch_train.x)
         
-        module_len = len(list(model.model.children()))
-        for i, module in enumerate(model.model.children()):
+        module_len = len(list(model.model.model.children()))
+        for i, module in enumerate(model.model.model.children()):
             if i < module_len - 1:
                 batch_train = module(batch_train)
             if i == module_len - 1:
                 batch_train_embed = tnn.global_max_pool(batch_train.x, batch_train.batch) + tnn.global_mean_pool(batch_train.x, batch_train.batch)
         graph_embed = batch_train_embed / torch.norm(batch_train_embed, dim=-1, keepdim=True)
-        for i, module in enumerate(model.model.children()):
+        for i, module in enumerate(model.model.model.children()):
             if i == module_len - 1:
                 graph_embed = module.layer_post_mp(graph_embed)
         
