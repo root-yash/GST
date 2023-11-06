@@ -10,7 +10,7 @@ from torch_geometric.data import (InMemoryDataset, Data, download_url,
                                   extract_tar, extract_zip)
 from torch_geometric.utils import remove_isolated_nodes
 from torch_sparse import SparseTensor
-
+from tqdm import tqdm
 
 class TPUGraphs(InMemoryDataset):
 
@@ -35,7 +35,7 @@ class TPUGraphs(InMemoryDataset):
         
     @property
     def raw_file_names(self) -> List[str]:
-        return [f'npz/layout/{self.source}/{self.search}']
+        return [f'{self.source}/{self.search}']
 
     @property
     def processed_file_names(self) -> List[str]:
@@ -70,9 +70,8 @@ class TPUGraphs(InMemoryDataset):
         parts_cnt = 0
         for raw_path in self.raw_paths:
             for split_name in split_names:
-                print(os.path.join(raw_path, split_name))
                 filenames = glob.glob(osp.join(os.path.join(raw_path, split_name), '*.npz'))
-                for filename in filenames:
+                for filename in tqdm(filenames):
                     split_dict[split_name].append(graphs_cnt)
                     np_file = dict(np.load(filename))
                     if "edge_index" not in np_file:
