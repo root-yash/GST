@@ -100,7 +100,8 @@ class TPUGraphs(InMemoryDataset):
                     if partptr[-1] != num_nodes:
                         partptr = torch.cat([partptr, torch.tensor([num_nodes])])
                     data = Data(edge_index=edge_index, op_feats=op, op_code=op_code, config_feats=config_feats, config_idx=config_idx,
-                                num_config=num_config, num_config_idx=num_config_idx, y=runtime, num_nodes=num_nodes, partptr=partptr, partition_idx = parts_cnt)
+                                num_config=num_config, num_config_idx=num_config_idx, y=runtime, num_nodes=num_nodes, partptr=partptr, partition_idx = parts_cnt,
+                                filename = filename)
                     data_list.append(data)
                     graphs_cnt += 1
                     parts_cnt += num_parts * num_config
