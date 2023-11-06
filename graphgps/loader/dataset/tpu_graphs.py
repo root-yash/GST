@@ -42,6 +42,26 @@ class TPUGraphs(InMemoryDataset):
         return ['data_segment_{}.pt'.format(self.thres), 'split_dict_segment_{}.pt'.format(self.thres)]
 
 
+    def get_config_part(self, file, split_name, max_config: 1000):
+        config_feat = file["node_config_feat"]
+        target = file["config_runtime"]
+
+        if split_name != "test":
+            third = max_config // 3
+            sorted_runtime = target.argsort()
+            indice = np.concatenate([
+                sorted_runtime[:third],
+                sorted_runtime[-third:],
+                np.random.choice(
+                    sorted_runtime[third:-third], max_config - 2 * third
+                )
+            ], axis=0)
+            np.random.shuffle(indice)
+            config_feat = config_feat[indice]
+            target = target[indice]
+
+        return config_feat, target
+
     def process(self):
         data_list = []
         split_names = ['train', 'valid', 'test']
@@ -56,11 +76,18 @@ class TPUGraphs(InMemoryDataset):
                     np_file = dict(np.load(filename))
                     if "edge_index" not in np_file:
                       print('error in', filename)
+
+                    np_file["node_config_feat"], np_file["config_runtime"] = self.get_config_part(
+                        np_file, split_name
+                    )
+
                     edge_index = torch.tensor(np_file["edge_index"].T)
                     runtime = torch.tensor(np_file["config_runtime"])
                     op = torch.tensor(np_file["node_feat"])
                     op_code = torch.tensor(np_file["node_opcode"])
+
                     config_feats = torch.tensor(np_file["node_config_feat"])
+
                     config_feats = config_feats.view(-1, config_feats.shape[-1])
                     config_idx = torch.tensor(np_file["node_config_ids"])
                     num_config = torch.tensor(np_file["node_config_feat"].shape[0])
