@@ -191,7 +191,7 @@ class CustomLogger(Logger):
             true = true.numpy()
             pred = pred.numpy()
             for i in range(true.shape[0]):
-                kendall.append(self.kendal_tau(pred[i], true[i]))
+                kendall.append(torch.tensor(self.kendal_tau(pred[i]), torch.tensor(true[i])))
                 opas.append(eval_opa(true[i], pred[i]))
                 corrs.append(eval_spearmanr(true[i], pred[i])['spearmanr'])
         return {
