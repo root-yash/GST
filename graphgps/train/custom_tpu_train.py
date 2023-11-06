@@ -17,6 +17,14 @@ from torch_sparse import SparseTensor
 from graphgps.loss.subtoken_prediction_loss import subtoken_cross_entropy
 from graphgps.utils import cfg_to_dict, flatten_dict, make_wandb_name
 from graphgps.history import History
+import ctypes
+import gc
+def clean_memory():
+    gc.collect()
+    ctypes.CDLL("libc.so.6").malloc_trim(0)
+    torch.cuda.empty_cache()
+
+NUM_SAMPLE_CONFIG = 32
 
 def pairwise_hinge_loss_batch(pred, true):
     # pred: (batch_size, num_preds )
@@ -59,7 +67,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
     model.train()
     optimizer.zero_grad()
     time_start = time.time()
-    num_sample_config = 32
+    num_sample_config = NUM_SAMPLE_CONFIG
     for iter, batch in enumerate(loader):
         batch, sampled_idx = preprocess_batch(batch, model, num_sample_config)
         batch.to(torch.device(cfg.accelerator))
@@ -183,7 +191,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
 def eval_epoch(logger, loader, model, split='val'):
     model.eval()
     time_start = time.time()
-    num_sample_config = 32
+    num_sample_config = NUM_SAMPLE_CONFIG
     for batch in loader:
         batch, _ = preprocess_batch(batch, model, num_sample_config)
         batch.split = split
@@ -310,7 +318,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         run.config.update(cfg_to_dict(cfg))
 
     num_splits = len(loggers)
-    split_names = ['val', 'test']
+    split_names = ['val']
     full_epoch_times = []
     perf = [[] for _ in range(num_splits)]
     emb_table = History(500000000, 1)
@@ -319,6 +327,8 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         train_epoch(loggers[0], loaders[0], model, optimizer, scheduler, emb_table,
                     cfg.optim.batch_accumulation)
         perf[0].append(loggers[0].write_epoch(cur_epoch))
+
+        clean_memory()
 
         if is_eval_epoch(cur_epoch):
             for i in range(1, num_splits):
@@ -423,7 +433,7 @@ def inference_only(loggers, loaders, model, optimizer=None, scheduler=None):
         scheduler: Unused, exists just for API compatibility
     """
     num_splits = len(loggers)
-    split_names = ['train', 'val', 'test']
+    split_names = ['test']
     perf = [[] for _ in range(num_splits)]
     cur_epoch = 0
     start_time = time.perf_counter()
