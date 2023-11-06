@@ -42,7 +42,7 @@ class TPUGraphs(InMemoryDataset):
         return ['data_segment_{}.pt'.format(self.thres), 'split_dict_segment_{}.pt'.format(self.thres)]
 
 
-    def get_config_part(self, file, split_name, max_config: 1000):
+    def get_config_part(self, file, split_name, max_config = 1000):
         config_feat = file["node_config_feat"]
         target = file["config_runtime"]
 
