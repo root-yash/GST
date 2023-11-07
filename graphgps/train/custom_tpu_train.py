@@ -68,6 +68,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
     optimizer.zero_grad()
     time_start = time.time()
     num_sample_config = NUM_SAMPLE_CONFIG
+    print("Number of Sample Config:", num_sample_config)
     for iter, batch in enumerate(loader):
         batch, sampled_idx = preprocess_batch(batch, model, num_sample_config)
         batch.to(torch.device(cfg.accelerator))
