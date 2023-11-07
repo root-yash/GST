@@ -47,7 +47,7 @@ class TPUGraphs(InMemoryDataset):
         config_feat = file["node_config_feat"]
         target = file["config_runtime"]
 
-        if split_name != "test":
+        if split_name != "test" and len(target) > max_config:
             third = max_config // 3
             sorted_runtime = target.argsort()
             indice = np.concatenate([
