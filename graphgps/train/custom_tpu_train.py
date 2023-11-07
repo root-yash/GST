@@ -24,8 +24,6 @@ def clean_memory():
     ctypes.CDLL("libc.so.6").malloc_trim(0)
     torch.cuda.empty_cache()
 
-NUM_SAMPLE_CONFIG = 32
-
 def pairwise_hinge_loss_batch(pred, true):
     # pred: (batch_size, num_preds )
     # true: (batch_size, num_preds)
