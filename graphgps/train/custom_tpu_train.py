@@ -67,7 +67,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
     model.train()
     optimizer.zero_grad()
     time_start = time.time()
-    num_sample_config = NUM_SAMPLE_CONFIG
+    num_sample_config = cfg.train.num_sample_config
     print("Number of Sample Config:", num_sample_config)
     for iter, batch in enumerate(loader):
         batch, sampled_idx = preprocess_batch(batch, model, num_sample_config)
@@ -192,7 +192,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
 def eval_epoch(logger, loader, model, split='val'):
     model.eval()
     time_start = time.time()
-    num_sample_config = NUM_SAMPLE_CONFIG
+    num_sample_config = cfg.train.num_sample_config
     for batch in loader:
         batch, _ = preprocess_batch(batch, model, num_sample_config)
         batch.split = split
