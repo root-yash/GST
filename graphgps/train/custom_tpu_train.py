@@ -66,7 +66,6 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
     optimizer.zero_grad()
     time_start = time.time()
     num_sample_config = cfg.train.num_sample_config
-    print("Number of Sample Config:", num_sample_config)
     for iter, batch in enumerate(loader):
         batch, sampled_idx = preprocess_batch(batch, model, num_sample_config)
         batch.to(torch.device(cfg.accelerator))
@@ -322,6 +321,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
     perf = [[] for _ in range(num_splits)]
     emb_table = History(500000000, 1)
     for cur_epoch in range(start_epoch, cfg.optim.max_epoch):
+        print("\n")
         start_time = time.perf_counter()
         train_epoch(loggers[0], loaders[0], model, optimizer, scheduler, emb_table,
                     cfg.optim.batch_accumulation)
