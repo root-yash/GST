@@ -21,8 +21,10 @@ class TPUGraphs(InMemoryDataset):
                  source: str = 'nlp',  # 'nlp' or 'xla'
                  search: str = 'random'  # 'random' or 'default'
                 ):
-        assert source in ('nlp', 'xla')
-        assert search in ('random', 'default')
+        source = cfg.dataset.source
+        search = cfg.dataset.search
+        assert source in ('nlp', 'xla', '*')
+        assert search in ('random', 'default', '*')
         self.thres = thres
         self.source = source
         self.search = search
