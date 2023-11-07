@@ -19,11 +19,13 @@ class TPUGraphs(InMemoryDataset):
                  pre_transform: Optional[Callable] = None,
                  pre_filter: Optional[Callable] = None,
                  source: str = 'nlp',  # 'nlp' or 'xla'
-                 search: str = 'random'  # 'random' or 'default'
+                 search: str = 'random',  # 'random' or 'default'
+                 max_no_config: int = 1000
                 ):
 
         assert source in ('nlp', 'xla', '*')
         assert search in ('random', 'default', '*')
+        self.max_no_config = max_no_config
         self.thres = thres
         self.source = source
         self.search = search
@@ -43,7 +45,8 @@ class TPUGraphs(InMemoryDataset):
         return ['data_segment_{}.pt'.format(self.thres), 'split_dict_segment_{}.pt'.format(self.thres)]
 
 
-    def get_config_part(self, file, split_name, max_config = 1000):
+    def get_config_part(self, file, split_name):
+        max_config = self.max_no_config
         config_feat = file["node_config_feat"]
         target = file["config_runtime"]
 

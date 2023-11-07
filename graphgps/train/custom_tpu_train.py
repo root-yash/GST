@@ -292,6 +292,7 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
         scheduler: PyTorch learning rate scheduler
 
     """
+    clean_memory()
     start_epoch = 0
     model = model.to(cfg.accelerator)
     if cfg.train.auto_resume:

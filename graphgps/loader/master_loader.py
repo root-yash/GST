@@ -323,7 +323,8 @@ def preformat_TPUGraphs(dataset_dir):
     dataset = TPUGraphs(
         dataset_dir,
         source=cfg.dataset.source,
-        search=cfg.dataset.search
+        search=cfg.dataset.search,
+        max_no_config=cfg.dataset.max_no_config
     )
     dataset.name = 'TPUGraphs'
 
