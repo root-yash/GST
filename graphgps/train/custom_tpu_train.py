@@ -369,7 +369,6 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
                     # the main metric on the training set.
                     best_train = f"train_{m}: {0:.4f}"
                 best_val = f"val_{m}: {perf[1][best_epoch][m]:.4f}"
-                best_test = f"test_{m}: {perf[2][best_epoch][m]:.4f}"
 
                 if cfg.wandb.use:
                     bstats = {"best/epoch": best_epoch}
