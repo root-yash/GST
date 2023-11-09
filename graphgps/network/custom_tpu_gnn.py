@@ -1,5 +1,5 @@
 import torch
-from torch_geometric.graphgym.models.layer import SAGEConv, new_layer_config
+from torch_geometric.graphgym.models.layer import SAGEConv, new_layer_config, GeneralLayer
 import torch_geometric.graphgym.models.head  # noqa, register module
 import torch_geometric.graphgym.register as register
 from torch_geometric.graphgym.config import cfg
@@ -30,25 +30,27 @@ class CustomGNN(torch.nn.Module):
         assert cfg.gnn.dim_inner == dim_in, \
             "The inner and hidden dims must match."
 
-        conv_model = self.build_conv_model(cfg.gnn.layer_type)
         layers = []
         layer_cfg = new_layer_config(dim_in, dim_in, 1, has_act=True, has_bias=True, cfg=cfg)
+        conv_model = self.build_conv_model(cfg.gnn.layer_type, layer_cfg)
+
         for _ in range(cfg.gnn.layers_mp):
-            layers.append(conv_model(layer_cfg))
+            layers.append(conv_model)
         self.gnn_layers = torch.nn.Sequential(*layers)
 
         GNNHead = register.head_dict[cfg.gnn.head]
         self.post_mp = GNNHead(dim_in=cfg.gnn.dim_inner, dim_out=dim_out)
 
-    def build_conv_model(self, model_type):
+    def build_conv_model(self, model_type, layer_config):
         if model_type == 'gatedgcnconv':
-            return GatedGCNLayer
+            return GatedGCNLayer(layer_config)
         elif model_type == 'gineconv':
-            return GINEConvLayer
-        elif model_type == 'sageconv':
-            return SAGEConv
+            return GINEConvLayer(layer_config)
         else:
-            raise ValueError("Model {} unavailable".format(model_type))
+            return GeneralLayer(
+                model_type,
+                layer_config=layer_config
+            )
 
     def forward(self, batch):
         for module in self.children():
