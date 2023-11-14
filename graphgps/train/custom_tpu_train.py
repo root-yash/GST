@@ -132,7 +132,6 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
                 graph_embed = module.layer_post_mp(graph_embed)
         
         binomial = torch.distributions.binomial.Binomial(probs=0.5)
-        clean_memory()
         if len(batch_other) > 0:
             batch_other = torch.cat(batch_other, dim=0)
             mask =  binomial.sample((batch_other.shape[0], 1)).to(torch.device(cfg.accelerator))
@@ -150,7 +149,6 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
             pred = graph_embed*multiplier_num + batch_other_embed
         else:
             pred = graph_embed
-        clean_memory()
         if cfg.dataset.name == 'ogbg-code2':
             loss, pred_score = subtoken_cross_entropy(pred, true)
             _true = true
@@ -165,7 +163,6 @@ def train_epoch(logger, loader, model, optimizer, scheduler, emb_table, batch_ac
             loss, pred_score = compute_loss(pred, true)
             _true = true.detach().to('cpu', non_blocking=True)
             _pred = pred_score.detach().to('cpu', non_blocking=True)
-        clean_memory()
         loss.backward()
         # Parameters update after accumulating gradients for given num. batches.
         if ((iter + 1) % batch_accumulation == 0) or (iter + 1 == len(loader)):
